@@ -43,8 +43,10 @@ const columns = [
 <template>
     <footer class="border-t border-hairline bg-canvas">
         <div class="mx-auto max-w-content px-6 py-16">
-            <div class="grid gap-10 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
-                <div class="max-w-xs">
+            <div
+                class="grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-6"
+            >
+                <div class="max-w-xs sm:col-span-2 lg:col-span-2">
                     <BrandMark />
                     <p class="mt-4 text-sm leading-relaxed text-ink-subtle">
                         The operating system for fashion brands — catalog to
