@@ -2,10 +2,12 @@
 
 This is the day-1 scaffold for `resources/js/`, built before any business
 features exist. It contains only cross-cutting infrastructure — no domain
-modules (products, orders, CRM, etc.). Those will land later as
-`resources/js/modules/<domain>/<module>/` (or similar), each with its own
-`pages/components/composables/services/stores/types`, and will import from
-the global folders below rather than duplicating them.
+modules (products, orders, CRM, etc.). Those land later as
+`resources/js/modules/<domain>/<module>/` (`components/composables/services/
+stores/types/constants/utils/tests`), with matching Inertia pages nested
+separately under `resources/js/pages/<domain>/<module>/`. See "Frontend
+Feature-Based Architecture" in `CLAUDE.md` for the full domain → module map
+and the rules for what goes in a module vs. the global folders below.
 
 ## Folder tree
 
