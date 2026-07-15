@@ -8,6 +8,14 @@ FashionFlow AI is a multi-tenant SaaS platform for fashion/apparel businesses �
 
 The codebase itself is a Laravel 13 + Inertia.js v3 + Vue 3 app, bootstrapped from the Laravel blank Vue starter kit (`composer.json` name: `laravel/blank-vue-starter-kit`).
 
+## AI Authoring Rule — UI-Only
+
+When building any UI (pages or components), produce the **presentation layer only**; the owner implements all logic by hand as a deliberate learning exercise. Do NOT implement the logic yourself.
+
+- **Write:** Vue `<template>` markup + Tailwind styling per `docs/DESIGN.md` tokens (both themes), with static placeholder data (hardcoded sample text, dummy lists, `#` links). Render every visual state (hover/active/disabled/loading/empty) statically.
+- **Do NOT write** — including UI-only behavior: no `ref`/`reactive`/`computed`, no event handlers, no open/close toggles, tabs, or modals; no Pinia stores, `services/` calls, `useForm`/`router`/Wayfinder wiring; no `props`/`emits` contracts, validation, data fetching, or business rules.
+- **End every UI task** with a **"Work you need to do yourself"** checklist naming the logic the owner must implement (which store, service call, props, handlers, validation, and applicable PRD business rules).
+
 **Current implementation state** (verify against `app/` and `resources/js/` before assuming a PRD module is built): only the default `User` model/migrations, Laravel Breeze's auth/profile scaffolding, and a single `Welcome` Inertia page exist — no PRD domain models (Store, Product, Order, etc.) or business logic yet. The frontend follows a feature-based layout — see "Frontend Feature-Based Architecture" below and `docs/frontend-architecture.md` for the full folder-by-folder breakdown. All 16 domain modules under `resources/js/modules/<domain>/` are scaffolded with the same internal shape; only `modules/auth/` has real content so far (session store/service moved out of the old global folders), the rest are empty placeholders.
 
 ## Commands
