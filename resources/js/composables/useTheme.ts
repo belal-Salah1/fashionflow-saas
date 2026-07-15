@@ -10,7 +10,10 @@ export function useTheme() {
     const store = useThemeStore();
 
     watchEffect(() => {
-        document.documentElement.classList.toggle('dark', store.resolved === 'dark');
+        document.documentElement.classList.toggle(
+            'dark',
+            store.resolved === 'dark',
+        );
     });
 
     function setTheme(value: ThemePreference) {

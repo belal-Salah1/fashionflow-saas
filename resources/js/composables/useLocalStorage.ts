@@ -7,7 +7,8 @@ import type { Ref } from 'vue';
  * (e.g. during SSR, or when storage is unavailable).
  */
 export function useLocalStorage<T>(key: string, defaultValue: T): Ref<T> {
-    const storage = typeof window !== 'undefined' ? window.localStorage : undefined;
+    const storage =
+        typeof window !== 'undefined' ? window.localStorage : undefined;
     const stored = storage?.getItem(key);
     const initial = stored ? (JSON.parse(stored) as T) : defaultValue;
     const state = ref<T>(initial) as Ref<T>;

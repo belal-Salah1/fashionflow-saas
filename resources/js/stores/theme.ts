@@ -1,6 +1,7 @@
-import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
+import { computed, ref } from 'vue';
 import { useLocalStorage } from '@/composables/useLocalStorage';
+import { STORAGE_KEYS } from '@/constants/storage-keys';
 import type { ResolvedTheme, ThemePreference } from '@/types/theme';
 
 const DARK_MEDIA_QUERY = '(prefers-color-scheme: dark)';
@@ -11,19 +12,30 @@ const DARK_MEDIA_QUERY = '(prefers-color-scheme: dark)';
  * than this store directly — it also applies the `.dark` class to <html>.
  */
 export const useThemeStore = defineStore('theme', () => {
-    const preference = useLocalStorage<ThemePreference>('fashionflow.theme', 'system');
+    const preference = useLocalStorage<ThemePreference>(
+        STORAGE_KEYS.THEME,
+        'system',
+    );
     const systemPrefersDark = ref(
-        typeof window !== 'undefined' ? window.matchMedia(DARK_MEDIA_QUERY).matches : false,
+        typeof window !== 'undefined'
+            ? window.matchMedia(DARK_MEDIA_QUERY).matches
+            : false,
     );
 
     if (typeof window !== 'undefined') {
-        window.matchMedia(DARK_MEDIA_QUERY).addEventListener('change', (event) => {
-            systemPrefersDark.value = event.matches;
-        });
+        window
+            .matchMedia(DARK_MEDIA_QUERY)
+            .addEventListener('change', (event) => {
+                systemPrefersDark.value = event.matches;
+            });
     }
 
     const resolved = computed<ResolvedTheme>(() =>
-        preference.value === 'system' ? (systemPrefersDark.value ? 'dark' : 'light') : preference.value,
+        preference.value === 'system'
+            ? systemPrefersDark.value
+                ? 'dark'
+                : 'light'
+            : preference.value,
     );
 
     function setPreference(value: ThemePreference) {

@@ -22,7 +22,10 @@ export function useToast() {
             durationMs: options.durationMs ?? DEFAULT_DURATION_MS,
         });
 
-        setTimeout(() => dismiss(id), options.durationMs ?? DEFAULT_DURATION_MS);
+        setTimeout(
+            () => dismiss(id),
+            options.durationMs ?? DEFAULT_DURATION_MS,
+        );
 
         return id;
     }
