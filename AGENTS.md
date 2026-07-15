@@ -8,7 +8,7 @@ FashionFlow AI is a multi-tenant SaaS platform for fashion/apparel businesses �
 
 The codebase itself is a Laravel 13 + Inertia.js v3 + Vue 3 app, bootstrapped from the Laravel blank Vue starter kit (`composer.json` name: `laravel/blank-vue-starter-kit`).
 
-**Current implementation state** (verify against `app/` and `resources/js/` before assuming a PRD module is built): only the default `User` model/migrations and a single `Welcome` Inertia page exist on the backend — no domain models (Store, Product, Order, etc.) or business logic yet. The frontend has started scaffolding toward the target stack: Pinia (`resources/js/stores/`), vue-i18n (`resources/js/i18n/`), and `lucide-vue-next` icons are installed, with placeholder directories reserved for upcoming layouts/components (`resources/js/layouts/`, `resources/js/components/{ui,forms,feedback,layout,charts}/`).
+**Current implementation state** (verify against `app/` and `resources/js/` before assuming a PRD module is built): only the default `User` model/migrations, Laravel Breeze's auth/profile scaffolding, and a single `Welcome` Inertia page exist — no PRD domain models (Store, Product, Order, etc.) or business logic yet. The frontend follows a feature-based layout — see "Frontend Feature-Based Architecture" below and `docs/frontend-architecture.md` for the full folder-by-folder breakdown. All 16 domain modules under `resources/js/modules/<domain>/` are scaffolded with the same internal shape; only `modules/auth/` has real content so far (session store/service moved out of the old global folders), the rest are empty placeholders.
 
 ## Commands
 
@@ -38,7 +38,7 @@ The codebase itself is a Laravel 13 + Inertia.js v3 + Vue 3 app, bootstrapped fr
 ## Architecture
 
 - **Inertia SPA, no separate API layer.** Routes in `routes/web.php` render Inertia pages directly (e.g. `Route::inertia('/', 'Welcome')`). There are no JSON API routes yet — follow this pattern (`Inertia::render()` / `Route::inertia()`) instead of introducing a REST API unless the task specifically calls for one.
-- **Frontend structure**: Vue pages live in `resources/js/pages/`, nested by domain/module (see "Frontend Feature-Based Architecture" below), and are resolved by component name from the Blade root view `resources/views/app.blade.php` (`@vite([..., "resources/js/pages/{$page['component']}.vue"])`). `resources/js/app.ts` is the Inertia entrypoint. The `@/*` import alias resolves to `resources/js/*` (`tsconfig.json`).
+- **Frontend structure**: Vue pages live in `resources/js/pages/`, nested by domain (`pages/auth/`, `pages/settings/profile/`), and are resolved by component name from the Blade root view `resources/views/app.blade.php` (`@vite([..., "resources/js/pages/{$page['component']}.vue"])`). `resources/js/app.ts` is the Inertia entrypoint. The `@/*` import alias resolves to `resources/js/*` (`tsconfig.json`). See "Frontend Feature-Based Architecture" below.
 - **Wayfinder-generated routing**: `resources/js/actions/` and `resources/js/routes/` are TypeScript functions auto-generated from PHP controllers/routes by `@laravel/vite-plugin-wayfinder` (regenerated on `npm run dev`/`build`). Don't hand-edit these; call backend endpoints from Vue via these generated functions instead of hardcoded URLs.
 - **No HTTP kernel**: middleware is registered in `bootstrap/app.php` (Laravel 13's config-free bootstrap style — there's no `app/Http/Kernel.php`). `app/Http/Middleware/HandleInertiaRequests.php` shares data with every Inertia response — add shared props there.
 - **Database**: SQLite by default (`database/database.sqlite`); only the default `users`/`cache`/`jobs` migrations exist so far. The PRD's target is MySQL — don't switch connections without approval (dependency/infra change).
@@ -46,38 +46,37 @@ The codebase itself is a Laravel 13 + Inertia.js v3 + Vue 3 app, bootstrapped fr
 
 ## Frontend Feature-Based Architecture
 
-The frontend is feature-based (domain → module), not organized by file type. Global, cross-cutting code lives in `resources/js/{components,composables,constants,i18n,layouts,plugins,services,stores,types,utils}` (documented folder-by-folder in `docs/frontend-architecture.md`); anything specific to one business capability belongs in a domain module instead, under `resources/js/modules/<domain>/<module>/`. Nothing under those module folders exists yet — create a module only when its first real page/feature is being built, not speculatively.
+The frontend is feature-based (one domain per module), not organized by file type. Global, cross-cutting code lives in `resources/js/{assets,constants,i18n,layouts,plugins,actions,routes,wayfinder,shared,services,types,utils}` (documented folder-by-folder in `docs/frontend-architecture.md`); anything specific to one business capability belongs in a domain module instead, under `resources/js/modules/<domain>/`.
 
-**Domain → module map** (four domains, modules drawn from the PRD's 14 product modules — `docs/PRD.md` §6 — plus AI; not a strict 1:1, group by what a module does and split further if one outgrows a folder):
+**Modules** (16, scaffolded up front under `resources/js/modules/` with the identical internal shape even while empty, so the target structure is visible from day one — drawn from the PRD's 14 product modules plus platform/AI concerns):
 
-- **commerce** — `store-management`, `products` (Categories/Brands/Collections/Variants), `inventory`, `suppliers` (Suppliers & Purchase Orders), `orders` (Orders & POS), `payments` (Payments & Wallet)
-- **growth** — `crm` (Customers/CRM), `campaigns` (Marketing & Campaigns), `messaging` (Messaging Center), `analytics` (Reports & Analytics), `ai` (AI Features — product copy, design generation, campaign generation, store assistant, forecasting, recommendations)
-- **platform** — `auth` (Authentication), `administration` (Settings & Administration), `notifications` (Notifications)
-- **storefront** — `public-store` (Landing Pages & Public Storefront), `checkout` (customer-facing checkout within Orders & POS), `customer-account` (customer-facing profile, built from CRM data)
+`auth`, `dashboard`, `catalog`, `inventory`, `orders`, `customers`, `crm`, `campaigns`, `landing-pages`, `storefront`, `ai`, `analytics`, `chat`, `notifications`, `settings`, `admin`
 
-**Folder layout:**
+Only `modules/auth/` has real content today (`stores/auth.store.ts`, `services/auth.service.ts`, `types/auth.ts` — moved out of the old global `stores/`/`services/`/`types/` folders since they're auth-specific, not cross-cutting). The other 15 are empty placeholders (`.gitkeep` per subfolder) until their first real feature lands.
+
+**Folder layout** (same shape for every module, whether populated or still a placeholder):
 
 ```
 resources/js/
-├── pages/<domain>/<module>/*.vue     Inertia entry points only (see below)
-└── modules/<domain>/<module>/
-    ├── components/                   business components (not shared UI — that's global components/ui, etc.)
-    ├── composables/                  business composables (e.g. useProductFilters)
-    ├── services/                     module-scoped API/service calls
-    ├── stores/                       module-scoped Pinia stores
-    ├── types/                        module-scoped types
-    ├── constants/                    module-scoped constants (e.g. OrderStatus, ProductStatus)
-    ├── utils/                        module-scoped pure helpers
-    └── tests/
+├── pages/<domain>/*.vue   Inertia entry points (existing Breeze pages: pages/auth/, pages/settings/profile/)
+└── modules/<domain>/
+    ├── components/        business components (not shared UI — that's shared/components)
+    ├── composables/       business composables (e.g. useProductFilters)
+    ├── constants/         module-scoped constants (e.g. OrderStatus, ProductStatus)
+    ├── pages/              composition roots for future pages (see below) — not used by existing Breeze pages
+    ├── services/          module-scoped API/service calls (e.g. auth.service.ts)
+    ├── stores/            module-scoped Pinia stores (e.g. auth.store.ts)
+    ├── types/             module-scoped types
+    └── utils/             module-scoped pure helpers
 ```
 
-**Why `pages/` isn't nested inside `modules/`**: Inertia resolves page components from the exact string passed to `Inertia::render()`, and `app.blade.php` hardcodes the Vite include as `resources/js/pages/{$page['component']}.vue` — the page entry point must physically live under `resources/js/pages/`, matching the render string path-for-path (e.g. `Inertia::render('commerce/products/Index')` → `resources/js/pages/commerce/products/Index.vue`). Everything else about that module lives in the parallel `modules/<domain>/<module>/` tree; the page file imports from there and stays a thin composition root (layout + wiring), not business logic.
+**Why `pages/` isn't nested inside `modules/`**: Inertia resolves page components from the exact string passed to `Inertia::render()`, and `app.blade.php` hardcodes the Vite include as `resources/js/pages/{$page['component']}.vue` — the page entry point must physically live under `resources/js/pages/`. Existing Breeze auth/settings pages stay there unmoved. For new domain features, keep a thin composition-root file under `resources/js/pages/<domain>/` (the actual Inertia entry point) that imports its real implementation from `modules/<domain>/pages/` — that keeps the page file a thin wiring layer while the module still owns the substantive page code.
 
 **Rules:**
 
-- A component/composable/store/service goes in a domain module unless more than one domain needs it — then promote it to the matching global folder. Never the reverse: global code must never import from a module.
-- Modules don't import each other's internals directly (e.g. don't reach into `modules/growth/crm/stores/` from `modules/commerce/orders/`). If two modules need the same thing, promote it to global instead.
-- Naming follows `docs/frontend-architecture.md` (`useX` composables, `defineStore('x', ...)` → `useXStore`, PascalCase types/components, `SCREAMING_SNAKE_CASE` constants).
+- A component/composable/store/service goes in a domain module unless more than one domain needs it — then promote it to `shared/` or the matching global folder. Never the reverse: global/shared code must never import from a module. The one sanctioned exception: `types/global.d.ts`'s ambient `PageProps` type imports `Auth` from `modules/auth/types/auth.ts`, since the Inertia shared `auth` prop needs a concrete type and `auth` is its owning module.
+- Modules don't import each other's internals directly (e.g. don't reach into `modules/crm/stores/` from `modules/orders/`). If two modules need the same thing, promote it to `shared/` or a global folder instead.
+- Naming follows `docs/frontend-architecture.md`: `useX` composables; stores as `x.store.ts` → `defineStore('x', ...)` exported as `useXStore`; services as `x.service.ts` exported as `xService`; PascalCase types/components; `SCREAMING_SNAKE_CASE` constants.
 - Business enums (order statuses, product statuses, permissions, roles) live in the owning module's `constants/`, never in the global `constants/` folder.
 
 ## Product Domain

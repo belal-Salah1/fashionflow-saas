@@ -1,4 +1,4 @@
-import type { Auth } from '@/types/auth';
+import type { Auth } from '@/modules/auth/types/auth';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
