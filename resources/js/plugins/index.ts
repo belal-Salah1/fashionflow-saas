@@ -1,5 +1,6 @@
 import type { App } from 'vue';
 import { i18n } from '@/i18n';
+import { registerMotion } from '@/plugins/motion';
 import { pinia } from '@/plugins/pinia';
 
 /**
@@ -9,4 +10,5 @@ import { pinia } from '@/plugins/pinia';
 export function registerPlugins(app: App): void {
     app.use(pinia);
     app.use(i18n);
+    registerMotion(app);
 }
