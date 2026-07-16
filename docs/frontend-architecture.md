@@ -164,3 +164,71 @@ while satisfying Inertia's path requirement.
 - No REST API layer — this app follows `Inertia::render()` /
   `Route::inertia()` per `CLAUDE.md`; `services/api.ts` is only for calling
   external, non-Laravel APIs.
+
+## Vue component style guide
+
+We follow the official [Vue.js Style Guide](https://vuejs.org/style-guide/),
+adapted to this codebase's stack (`<script setup>` + TypeScript +
+Composition API + Tailwind). Apply these by default when writing or reviewing
+any `.vue` file. Priority letters match the upstream guide (A = essential,
+B = strongly recommended, C = recommended).
+
+**A — Essential (never skip):**
+
+- **Multi-word component names** for components we author (`ProductCard`, not
+  `Card`) — avoids clashing with current/future HTML elements. *Exception:*
+  vendored primitives in `shared/components/ui/` keep shadcn-vue's single-word
+  names (`Button.vue`, `Card.vue`) by convention; that's a deliberate,
+  bounded carve-out, not license to name your own components with one word.
+- **Typed prop definitions** — declare props via `defineProps<{ ... }>()` with
+  explicit TypeScript types (and `withDefaults` where needed), never an
+  untyped array of names.
+- **Keyed `v-for`** — always bind a stable, unique `:key` (never the array
+  index when items can reorder/insert/delete).
+- **Never `v-if` on the same element as `v-for`** — filter in a `computed`, or
+  move the `v-if` to a wrapping `<template>`.
+
+**B — Strongly recommended:**
+
+- **One component per file**; filename in PascalCase (matches the Naming
+  conventions table above).
+- **Self-close** components with no slotted content: `<ProductCard />`.
+- **PascalCase in templates** for components: `<ProductCard>`, not
+  `<product-card>`.
+- **Prop names**: declare in `camelCase`; bind in templates in `kebab-case`
+  (`:max-price="..."`).
+- **Base/singleton naming**: base primitives read `Base*`/`App*`/`V*`;
+  components rendered once per page read `The*` (`TheNavbar`); a child tightly
+  coupled to a parent carries the parent's name as prefix (`ProductList` →
+  `ProductListItem`).
+- **Component-name word order**: start general, end specific
+  (`SearchInputClearButton`, not `ClearButtonSearchInput`).
+- **Full words over abbreviations** in names (`ProductDescription`, not
+  `ProdDesc`).
+- **One attribute per line** when an element has multiple attributes.
+- **Directive shorthands only**, used consistently: `:` (`v-bind`), `@`
+  (`v-on`), `#` (`v-slot`).
+- **Keep template expressions simple** — push anything beyond a basic
+  expression into a `computed` or a module composable; split complex
+  `computed`s into smaller ones.
+
+**C — Recommended:**
+
+- **Consistent SFC top-level order**: `<script setup>` first, then
+  `<template>`, then `<style>` (we rarely need `<style>` given Tailwind).
+- **Consistent element attribute order** (definition/list `v-` directives →
+  `id`/`ref` → `class` → other bindings → events).
+
+**Stack-specific notes** (where the upstream guide assumes Options API / plain
+CSS):
+
+- The guide's *component-scoped styling* rule is satisfied by Tailwind utility
+  classes on the element — do not add global unscoped CSS. If a `<style>`
+  block is ever unavoidable, it must be `scoped`.
+- The Options-API *component-options order* rule doesn't apply; with
+  `<script setup>` keep a consistent intra-`<script>` order instead: imports →
+  `defineProps`/`defineEmits` → composables/stores → local `ref`/`reactive` →
+  `computed` → functions → lifecycle hooks → `watch`.
+- Prefer props-down / events-up and Pinia stores over implicit parent-child
+  mutation (the guide's Priority-D cautions), consistent with the module
+  architecture above.
